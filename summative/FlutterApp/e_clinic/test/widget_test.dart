@@ -1,30 +1,24 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:e_clinic/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Navigate to prediction page and verify UI', (WidgetTester tester) async {
+    await tester.pumpWidget(const SymptomsCheckerApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Home Page
+    expect(find.text('Symptoms AI Checker'), findsOneWidget);
+    expect(find.byKey(const Key('startButton')), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Tap start
+    await tester.tap(find.byKey(const Key('startButton')));
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Prediction Page
+    expect(find.text('Enter Symptoms'), findsOneWidget);
+    expect(find.byKey(const Key('coughField')), findsOneWidget);
+    expect(find.byKey(const Key('feverField')), findsOneWidget);
+    expect(find.byKey(const Key('soreThroatField')), findsOneWidget);
+    expect(find.byKey(const Key('predictButton')), findsOneWidget);
   });
 }
