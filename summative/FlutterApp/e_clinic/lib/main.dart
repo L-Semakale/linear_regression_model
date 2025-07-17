@@ -1,25 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+import 'screens/home_screen.dart'; // make sure this path is correct
 
-import 'screens/home_screen.dart';
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(const SymptomsCheckerApp());
+void main() {
+  runApp(const MyApp());
 }
 
-class SymptomsCheckerApp extends StatelessWidget {
-  const SymptomsCheckerApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'Symptoms Checker',
-      home: HomeScreen(),
+    return MaterialApp(
+      title: 'Diabetes Prediction App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: const HomeScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }

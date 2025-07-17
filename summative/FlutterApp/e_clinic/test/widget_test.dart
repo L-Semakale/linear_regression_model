@@ -3,8 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:e_clinic/main.dart';
 
 void main() {
-  testWidgets('Navigate to prediction page and verify UI', (WidgetTester tester) async {
-    await tester.pumpWidget(const SymptomsCheckerApp());
+  testWidgets('Navigate to prediction page and verify UI',
+      (WidgetTester tester) async {
+    await tester
+        .pumpWidget(const MyApp()); // <-- Use your actual app class name
 
     // Home Page
     expect(find.text('Symptoms AI Checker'), findsOneWidget);

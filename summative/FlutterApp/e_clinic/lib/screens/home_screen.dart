@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'prediction_screen.dart'; // ✅ Ensure the correct relative path
+import 'prediction_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -7,16 +7,16 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Symptoms AI Checker')),
+      appBar: AppBar(title: const Text("Welcome")),
       body: Center(
         child: ElevatedButton(
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const PredictionScreen()),
+              MaterialPageRoute(builder: (context) => const PredictionScreen()),
             );
           },
-          child: const Text('Start Symptom Check'),
+          child: const Text("Go to Prediction Form"),
         ),
       ),
     );

@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class PredictionScreen extends StatefulWidget {
   const PredictionScreen({super.key});
@@ -11,83 +11,113 @@ class PredictionScreen extends StatefulWidget {
 
 class _PredictionScreenState extends State<PredictionScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _ageController = TextEditingController();
-  final TextEditingController _symptomController = TextEditingController();
-  final TextEditingController _regionController = TextEditingController();
-  final TextEditingController _genderController = TextEditingController();
 
-  String _predictionResult = '';
+  // Controllers
+  final TextEditingController pregnancies = TextEditingController();
+  final TextEditingController glucose = TextEditingController();
+  final TextEditingController bloodPressure = TextEditingController();
+  final TextEditingController skinThickness = TextEditingController();
+  final TextEditingController insulin = TextEditingController();
+  final TextEditingController bmi = TextEditingController();
+  final TextEditingController dpf =
+      TextEditingController(); // Diabetes Pedigree Function
+  final TextEditingController age = TextEditingController();
 
-  Future<void> predictDisease() async {
+  String? _result;
+
+  Future<void> predictDiabetes() async {
+    if (!_formKey.currentState!.validate()) return;
+
     final url = Uri.parse(
-        "http://127.0.0.1:5000/predict"); // use your server IP if testing on mobile
+        "https://your-api-url.onrender.com/predict"); // Replace with your deployed FastAPI endpoint
 
-    final response = await http.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "Age": int.tryParse(_ageController.text) ?? 0,
-        "Symptoms": _symptomController.text,
-        "Region": _regionController.text,
-        "Gender": _genderController.text,
-        // Add other fields as needed
-      }),
-    );
+    final body = {
+      "Pregnancies": int.parse(pregnancies.text),
+      "Glucose": double.parse(glucose.text),
+      "BloodPressure": double.parse(bloodPressure.text),
+      "SkinThickness": double.parse(skinThickness.text),
+      "Insulin": double.parse(insulin.text),
+      "BMI": double.parse(bmi.text),
+      "DiabetesPedigreeFunction": double.parse(dpf.text),
+      "Age": int.parse(age.text),
+    };
 
-    if (response.statusCode == 200) {
-      final decoded = json.decode(response.body);
-      setState(() {
-        _predictionResult = decoded['prediction'].toString();
-      });
-    } else {
-      setState(() {
-        _predictionResult = 'Error: ${response.reasonPhrase}';
-      });
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        setState(() {
+          _result =
+              decoded['prediction'] == 1 ? 'Likely Diabetic' : 'Not Diabetic';
+        });
+      } else {
+        setState(() => _result = "Error: ${response.statusCode}");
+      }
+    } catch (e) {
+      setState(() => _result = "Failed to connect to API.");
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Disease Prediction")),
+      appBar: AppBar(title: const Text("Diabetes Prediction")),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: ListView(
             children: [
-              TextFormField(
-                controller: _ageController,
-                decoration: const InputDecoration(labelText: 'Age'),
-                keyboardType: TextInputType.number,
-              ),
-              TextFormField(
-                controller: _symptomController,
-                decoration: const InputDecoration(labelText: 'Symptoms'),
-              ),
-              TextFormField(
-                controller: _regionController,
-                decoration: const InputDecoration(labelText: 'Region'),
-              ),
-              TextFormField(
-                controller: _genderController,
-                decoration: const InputDecoration(labelText: 'Gender (M/F)'),
-              ),
+              _buildField("Pregnancies", pregnancies, TextInputType.number),
+              _buildField("Glucose", glucose, TextInputType.number),
+              _buildField(
+                  "Blood Pressure", bloodPressure, TextInputType.number),
+              _buildField(
+                  "Skin Thickness", skinThickness, TextInputType.number),
+              _buildField("Insulin", insulin, TextInputType.number),
+              _buildField("BMI", bmi, TextInputType.number),
+              _buildField(
+                  "Diabetes Pedigree Function", dpf, TextInputType.number),
+              _buildField("Age", age, TextInputType.number),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: predictDisease,
-                child: const Text('Predict'),
+                onPressed: predictDiabetes,
+                child: const Text("Predict"),
               ),
               const SizedBox(height: 20),
-              Text(
-                _predictionResult.isEmpty
-                    ? 'Prediction will appear here'
-                    : 'Prediction: $_predictionResult',
-                style: const TextStyle(fontSize: 18),
-              ),
+              if (_result != null)
+                Text(
+                  _result!,
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                )
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildField(String label, TextEditingController controller,
+      TextInputType keyboardType) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) return 'Enter $label';
+          return null;
+        },
       ),
     );
   }
