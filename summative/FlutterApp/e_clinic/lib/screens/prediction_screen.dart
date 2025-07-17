@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class PredictionScreen extends StatefulWidget {
   const PredictionScreen({super.key});
@@ -8,86 +10,83 @@ class PredictionScreen extends StatefulWidget {
 }
 
 class _PredictionScreenState extends State<PredictionScreen> {
-  final List<String> symptoms = [
-    'Fever',
-    'Cough',
-    'Fatigue',
-    'Headache',
-    'Nausea',
-    'Diarrhea',
-    'Sore Throat',
-    'Muscle Pain',
-  ];
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _ageController = TextEditingController();
+  final TextEditingController _symptomController = TextEditingController();
+  final TextEditingController _regionController = TextEditingController();
+  final TextEditingController _genderController = TextEditingController();
 
-  final Set<String> selectedSymptoms = {};
-  String predictionResult = '';
-  bool isLoading = false;
+  String _predictionResult = '';
 
-  void predictDisease() async {
-    if (selectedSymptoms.isEmpty) {
+  Future<void> predictDisease() async {
+    final url = Uri.parse(
+        "http://127.0.0.1:5000/predict"); // use your server IP if testing on mobile
+
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "Age": int.tryParse(_ageController.text) ?? 0,
+        "Symptoms": _symptomController.text,
+        "Region": _regionController.text,
+        "Gender": _genderController.text,
+        // Add other fields as needed
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final decoded = json.decode(response.body);
       setState(() {
-        predictionResult = '⚠️ Please select at least one symptom.';
+        _predictionResult = decoded['prediction'].toString();
       });
-      return;
+    } else {
+      setState(() {
+        _predictionResult = 'Error: ${response.reasonPhrase}';
+      });
     }
-
-    setState(() {
-      isLoading = true;
-      predictionResult = '';
-    });
-
-    await Future.delayed(const Duration(seconds: 2));
-
-    // TODO: Replace with actual API call
-    setState(() {
-      isLoading = false;
-      predictionResult = '🩺 Predicted Disease: Common Cold';
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Symptom Checker')),
+      appBar: AppBar(title: const Text("Disease Prediction")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const Text(
-              'Select Symptoms:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: ListView(
-                children: symptoms.map((symptom) {
-                  return CheckboxListTile(
-                    title: Text(symptom),
-                    value: selectedSymptoms.contains(symptom),
-                    onChanged: (bool? value) {
-                      setState(() {
-                        value == true
-                            ? selectedSymptoms.add(symptom)
-                            : selectedSymptoms.remove(symptom);
-                      });
-                    },
-                  );
-                }).toList(),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              TextFormField(
+                controller: _ageController,
+                decoration: const InputDecoration(labelText: 'Age'),
+                keyboardType: TextInputType.number,
               ),
-            ),
-            ElevatedButton(
-              onPressed: isLoading ? null : predictDisease,
-              child: isLoading
-                  ? const CircularProgressIndicator()
-                  : const Text('Predict'),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              predictionResult,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-          ],
+              TextFormField(
+                controller: _symptomController,
+                decoration: const InputDecoration(labelText: 'Symptoms'),
+              ),
+              TextFormField(
+                controller: _regionController,
+                decoration: const InputDecoration(labelText: 'Region'),
+              ),
+              TextFormField(
+                controller: _genderController,
+                decoration: const InputDecoration(labelText: 'Gender (M/F)'),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: predictDisease,
+                child: const Text('Predict'),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                _predictionResult.isEmpty
+                    ? 'Prediction will appear here'
+                    : 'Prediction: $_predictionResult',
+                style: const TextStyle(fontSize: 18),
+              ),
+            ],
+          ),
         ),
       ),
     );
