@@ -3,7 +3,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
-from prediction import predict_diabetes
 
 app = FastAPI(
     title="Diabetes Prediction API",
