@@ -29,7 +29,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final url = Uri.parse(
-        "https://your-api-url.onrender.com/predict"); // Replace with your deployed FastAPI endpoint
+        "https://e-clinic.onrender.com/predict"); // Replace with your deployed FastAPI endpoint
 
     final body = {
       "Pregnancies": int.parse(pregnancies.text),
