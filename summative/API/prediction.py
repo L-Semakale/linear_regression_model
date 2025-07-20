@@ -25,14 +25,14 @@ app.add_middleware(
 
 # Input Schema
 class PatientData(BaseModel):
-    Pregnancies: conint(ge=0, le=20)
-    Glucose: conint(gt=0, lt=250)
-    BloodPressure: conint(gt=0, lt=150)
-    SkinThickness: conint(gt=0, lt=100)
-    Insulin: conint(gt=0, lt=1000)
-    BMI: confloat(gt=0, lt=100)
-    DiabetesPedigreeFunction: confloat(gt=0.0, lt=3.0)
-    Age: conint(gt=0, lt=130)
+    Pregnancies: int = Field(..., ge=0, le=20)
+    Glucose: int = Field(..., gt=0, lt=250)
+    BloodPressure: int = Field(..., gt=0, lt=150)
+    SkinThickness: int = Field(..., gt=0, lt=100)
+    Insulin: int = Field(..., gt=0, lt=1000)
+    BMI: float = Field(..., gt=0, lt=100)
+    DiabetesPedigreeFunction: float = Field(..., gt=0.0, lt=3.0)
+    Age: int = Field(..., gt=0, lt=130)
 
 @app.post("/predict")
 def predict(data: PatientData):

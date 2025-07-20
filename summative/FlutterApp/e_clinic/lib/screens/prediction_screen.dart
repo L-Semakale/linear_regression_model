@@ -93,7 +93,8 @@ class _PredictionScreenState extends State<PredictionScreen> {
               if (_result != null)
                 Text(
                   _result!,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 )
             ],
