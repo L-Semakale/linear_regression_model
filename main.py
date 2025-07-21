@@ -1,9 +1,6 @@
-# main.py
-
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
-from prediction import predict_diabetes
 
 app = FastAPI(
     title="Diabetes Prediction API",
@@ -20,7 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Input Schema
+# Define request schema
 class PatientData(BaseModel):
     Pregnancies: int = Field(..., ge=0, le=20)
     Glucose: int = Field(..., gt=0, lt=250)
@@ -31,11 +28,12 @@ class PatientData(BaseModel):
     DiabetesPedigreeFunction: float = Field(..., gt=0.0, lt=3.0)
     Age: int = Field(..., gt=0, lt=130)
 
+# Prediction endpoint
 @app.post("/predict")
 def predict(data: PatientData):
-    features = [
-        data.Pregnancies, data.Glucose, data.BloodPressure,
-        data.SkinThickness, data.Insulin, data.BMI,
-        data.DiabetesPedigreeFunction, data.Age
-    ]
-    return predict_diabetes(features)
+    try:
+        # Simple rule-based prediction for demonstration
+        prediction = "positive" if data.Glucose > 120 else "negative"
+        return {"prediction": prediction}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Prediction error: {e}")
