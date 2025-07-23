@@ -3,7 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class PredictionScreen extends StatefulWidget {
-  const PredictionScreen({super.key});
+  final VoidCallback onToggleTheme;
+  const PredictionScreen({super.key, required this.onToggleTheme});
 
   @override
   State<PredictionScreen> createState() => _PredictionScreenState();
@@ -24,36 +25,24 @@ class _PredictionScreenState extends State<PredictionScreen> {
   String? _result;
   bool _loading = false;
 
-  int? tryParseInt(String val) {
-    try {
-      return int.parse(val);
-    } catch (_) {
-      return null;
-    }
-  }
-
-  double? tryParseDouble(String val) {
-    try {
-      return double.parse(val);
-    } catch (_) {
-      return null;
-    }
-  }
+  int? tryParseInt(String val) => int.tryParse(val);
+  double? tryParseDouble(String val) => double.tryParse(val);
 
   Future<void> predictDiabetes() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final int? pregVal = tryParseInt(pregnancies.text);
-    final int? gluVal = tryParseInt(glucose.text);
-    final int? bpVal = tryParseInt(bloodPressure.text);
-    final int? skinVal = tryParseInt(skinThickness.text);
-    final int? insulinVal = tryParseInt(insulin.text);
-    final double? bmiVal = tryParseDouble(bmi.text);
-    final double? dpfVal = tryParseDouble(dpf.text);
-    final int? ageVal = tryParseInt(age.text);
+    final values = [
+      tryParseInt(pregnancies.text),
+      tryParseInt(glucose.text),
+      tryParseInt(bloodPressure.text),
+      tryParseInt(skinThickness.text),
+      tryParseInt(insulin.text),
+      tryParseDouble(bmi.text),
+      tryParseDouble(dpf.text),
+      tryParseInt(age.text),
+    ];
 
-    if ([pregVal, gluVal, bpVal, skinVal, insulinVal, bmiVal, dpfVal, ageVal]
-        .contains(null)) {
+    if (values.contains(null)) {
       setState(() => _result = "Please enter valid numbers in all fields.");
       return;
     }
@@ -62,14 +51,14 @@ class _PredictionScreenState extends State<PredictionScreen> {
         Uri.parse("https://linear-regression-model-trk1.onrender.com/predict");
 
     final body = {
-      "Pregnancies": pregVal!,
-      "Glucose": gluVal!,
-      "BloodPressure": bpVal!,
-      "SkinThickness": skinVal!,
-      "Insulin": insulinVal!,
-      "BMI": bmiVal!,
-      "DiabetesPedigreeFunction": dpfVal!,
-      "Age": ageVal!,
+      "Pregnancies": values[0],
+      "Glucose": values[1],
+      "BloodPressure": values[2],
+      "SkinThickness": values[3],
+      "Insulin": values[4],
+      "BMI": values[5],
+      "DiabetesPedigreeFunction": values[6],
+      "Age": values[7],
     };
 
     setState(() {
@@ -91,10 +80,9 @@ class _PredictionScreenState extends State<PredictionScreen> {
               decoded['prediction'] == 1 ? 'Likely Diabetic' : 'Not Diabetic';
         });
       } else {
-        setState(() => _result =
-            "Error: ${response.statusCode} - ${response.reasonPhrase}");
+        setState(() => _result = "Error: ${response.statusCode}");
       }
-    } catch (e) {
+    } catch (_) {
       setState(() => _result = "Failed to connect to API.");
     } finally {
       setState(() => _loading = false);
@@ -103,57 +91,88 @@ class _PredictionScreenState extends State<PredictionScreen> {
 
   @override
   void dispose() {
-    pregnancies.dispose();
-    glucose.dispose();
-    bloodPressure.dispose();
-    skinThickness.dispose();
-    insulin.dispose();
-    bmi.dispose();
-    dpf.dispose();
-    age.dispose();
+    for (var controller in [
+      pregnancies,
+      glucose,
+      bloodPressure,
+      skinThickness,
+      insulin,
+      bmi,
+      dpf,
+      age,
+    ]) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(title: const Text("Diabetes Prediction")),
-      body: Padding(
+      floatingActionButton: FloatingActionButton(
+        onPressed: widget.onToggleTheme,
+        child: const Icon(Icons.brightness_6),
+      ),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: ListView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildField("Pregnancies", pregnancies, TextInputType.number),
-              _buildField("Glucose", glucose, TextInputType.number),
-              _buildField(
-                  "Blood Pressure", bloodPressure, TextInputType.number),
-              _buildField(
-                  "Skin Thickness", skinThickness, TextInputType.number),
-              _buildField("Insulin", insulin, TextInputType.number),
-              _buildField("BMI", bmi, TextInputType.number),
-              _buildField(
-                  "Diabetes Pedigree Function", dpf, TextInputType.number),
-              _buildField("Age", age, TextInputType.number),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _loading ? null : predictDiabetes,
-                child: _loading
-                    ? const SizedBox(
-                        height: 16,
-                        width: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text("Predict"),
+              Text(
+                "Enter your health metrics:",
+                style: theme.textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
+              _buildField("Pregnancies", pregnancies),
+              _buildField("Glucose", glucose),
+              _buildField("Blood Pressure", bloodPressure),
+              _buildField("Skin Thickness", skinThickness),
+              _buildField("Insulin", insulin),
+              _buildField("BMI", bmi),
+              _buildField("Diabetes Pedigree Function", dpf),
+              _buildField("Age", age),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _loading ? null : predictDiabetes,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: _loading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text("Predict"),
+                ),
+              ),
+              const SizedBox(height: 24),
               if (_result != null)
-                Text(
-                  _result!,
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                )
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.grey[900] : Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border:
+                        Border.all(color: isDark ? Colors.white : Colors.blue),
+                  ),
+                  child: Text(
+                    _result!,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color:
+                          _result!.contains("Not") ? Colors.green : Colors.red,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
             ],
           ),
         ),
@@ -161,16 +180,16 @@ class _PredictionScreenState extends State<PredictionScreen> {
     );
   }
 
-  Widget _buildField(String label, TextEditingController controller,
-      TextInputType keyboardType) {
+  Widget _buildField(String label, TextEditingController controller) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 16),
       child: TextFormField(
         controller: controller,
-        keyboardType: keyboardType,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
         decoration: InputDecoration(
           labelText: label,
           border: const OutlineInputBorder(),
+          prefixIcon: const Icon(Icons.health_and_safety),
         ),
         validator: (value) {
           if (value == null || value.isEmpty) return 'Enter $label';
