@@ -13,7 +13,8 @@ This project focuses on early prediction of diabetes in patients based on diagno
 **Source**:  
 Pima Indians Diabetes Database  
 Available via Kaggle: [Kaggle Dataset](https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database)
-Approved by Marvin Muyonga Ogore
+
+#### Approved by Marvin Muyonga Ogore
 
 **Description**:  
 The dataset contains **768 records** of female patients aged **21 or older**.  
