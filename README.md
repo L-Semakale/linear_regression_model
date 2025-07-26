@@ -50,6 +50,7 @@ Predict diabetes likelihood using machine learning models trained on real medica
    ```
 
 ### Dataset Details
-Source:
-Pima Indians Diabetes Database
-Available via Kaggle: Kaggle Dataset Approved by Marvin Muyonga Ogore
+**Source**:  
+Pima Indians Diabetes Database  
+Available via Kaggle: [Kaggle Dataset](https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database)
+Approved by Marvin Muyonga Ogore
