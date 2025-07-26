@@ -12,6 +12,7 @@ class PredictionScreen extends StatefulWidget {
 
 class _PredictionScreenState extends State<PredictionScreen> {
   final _formKey = GlobalKey<FormState>();
+  final ScrollController _scrollController = ScrollController();
 
   final TextEditingController pregnancies = TextEditingController();
   final TextEditingController glucose = TextEditingController();
@@ -86,6 +87,13 @@ class _PredictionScreenState extends State<PredictionScreen> {
       setState(() => _result = "Failed to connect to API.");
     } finally {
       setState(() => _loading = false);
+      Future.delayed(const Duration(milliseconds: 300), () {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      });
     }
   }
 
@@ -103,6 +111,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
     ]) {
       controller.dispose();
     }
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -118,18 +127,23 @@ class _PredictionScreenState extends State<PredictionScreen> {
         child: const Icon(Icons.brightness_6),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        controller: _scrollController,
+        padding: const EdgeInsets.all(24),
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              const Icon(Icons.monitor_heart, size: 80, color: Colors.blue),
+              const SizedBox(height: 12),
               Text(
-                "Enter your health metrics:",
-                style: theme.textTheme.titleLarge
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                "Enter your health metrics",
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               _buildField("Pregnancies", pregnancies),
               _buildField("Glucose", glucose),
               _buildField("Blood Pressure", bloodPressure),
@@ -141,14 +155,19 @@ class _PredictionScreenState extends State<PredictionScreen> {
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: ElevatedButton.icon(
                   onPressed: _loading ? null : predictDiabetes,
+                  icon: const Icon(Icons.analytics_outlined),
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
                     padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                  child: _loading
+                  label: _loading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text("Predict"),
+                      : const Text("Predict", style: TextStyle(fontSize: 16)),
                 ),
               ),
               const SizedBox(height: 24),
@@ -158,17 +177,18 @@ class _PredictionScreenState extends State<PredictionScreen> {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: isDark ? Colors.grey[900] : Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border:
-                        Border.all(color: isDark ? Colors.white : Colors.blue),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                        color: isDark ? Colors.white54 : Colors.blueAccent),
                   ),
                   child: Text(
                     _result!,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color:
-                          _result!.contains("Not") ? Colors.green : Colors.red,
+                      color: _result!.contains("Not")
+                          ? Colors.green.shade600
+                          : Colors.red.shade600,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -188,7 +208,9 @@ class _PredictionScreenState extends State<PredictionScreen> {
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         decoration: InputDecoration(
           labelText: label,
-          border: const OutlineInputBorder(),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
           prefixIcon: const Icon(Icons.health_and_safety),
         ),
         validator: (value) {
