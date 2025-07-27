@@ -16,7 +16,7 @@ Predict diabetes likelihood using machine learning models trained on real medica
 
 ## Demo Video 
 
- (https://www.youtube.com/watch?v=YOUR_VIDEO_LINK)
+https://youtu.be/1mr9U3K4fUU
 
 ---
 
